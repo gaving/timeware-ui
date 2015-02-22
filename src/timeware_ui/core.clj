@@ -11,6 +11,12 @@
       (carica.core/config :url) "history" (carica.core/config :username)
      ]) {:accept :json :as :json :headers {"X-Auth-Pass" (carica.core/config :password)}}) :body))
 
+(defn punch-the-clock []
+  (get (client/post
+    (join "/" [
+      (carica.core/config :url) "clock" (carica.core/config :username)
+     ]) {:accept :json :as :json :headers {"X-Auth-Pass" (carica.core/config :password)}}) :body))
+
 (defn make-table []
   (table :id :table :model [
     :columns [
@@ -27,9 +33,21 @@
       ]
     :rows (get-data)]))
 
+(defn now [] (new java.util.Date))
+(defn a-clock [e] [e] (when (punch-the-clock) (alert e (now))))
+(defn a-exit [e] (System/exit 0))
+(def clock-action (menu-item :text "Clock" :listen [:action a-clock]))
+(def exit-action (menu-item :text "Exit" :listen [:action a-exit]))
+
 (defn make-frame []
-  (frame :title "Timeware" :width 500 :height 400 :content
-     (border-panel
+  (frame :title "Timeware" :on-close :exit :width 600 :height 500
+       :menubar (menubar :items
+                  [(menu :text "File" :items [clock-action exit-action])])
+       :content (border-panel
+                  :north (button :text "PUNCH THE CLOCK!"
+                    :size [40 :by 40]
+                    :mnemonic \N
+                    :listen [:action a-clock])
        :center (scrollable (make-table))
        :south  (label :id :sel :text "Selection: "))))
 
